@@ -1,0 +1,18 @@
+{
+  "name": "mood-diary-api",
+  "compatibility_date": "2026-02-10",
+  "main": "workers/api.js",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "mood-diary-db",
+      "database_id": "YOUR_DATABASE_ID_HERE"
+    }
+  ],
+  "routes": [
+    {
+      "pattern": "*/api/*",
+      "zone_name": "YOUR_DOMAIN_HERE"
+    }
+  ]
+}

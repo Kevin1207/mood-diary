@@ -1,16 +1,284 @@
-// ==================== 导入云端存储模块 ====================
-import {
-    checkLoginStatus,
-    register,
-    login,
-    logout,
-    saveMoodToCloud,
-    deleteMoodFromCloud,
-    loadMoodDataLocal,
-    saveMoodDataLocal
-} from './cloud-storage.js';
+// ==================== LeanCloud 云端存储功能 ====================
 
-// ==================== 心情数据 ====================
+// LeanCloud 配置（请在 config.js 中填写）
+let AV;
+let currentUser = null;
+
+// 初始化 LeanCloud
+function initLeanCloud() {
+    // 检查配置
+    const config = {
+        appId: 'YOUR_APP_ID_HERE',
+        appKey: 'YOUR_APP_KEY_HERE',
+        serverURL: 'https://YOUR_APP_ID.lc-cn-n1-shared.com'
+    };
+    
+    // 判断是否已配置
+    if (config.appId === 'YOUR_APP_ID_HERE') {
+        console.warn('请先配置 LeanCloud！访问 https://console.leancloud.cn 注册并创建应用');
+        // 未配置则使用本地存储
+        return false;
+    }
+    
+    try {
+        AV = window.AV;
+        AV.init(config);
+        return true;
+    } catch (error) {
+        console.error('LeanCloud 初始化失败:', error);
+        return false;
+    }
+}
+
+// 检查用户登录状态
+async function checkLoginStatus() {
+    if (!AV) return false;
+    
+    try {
+        currentUser = AV.User.current();
+        if (currentUser) {
+            showUserInfo(currentUser.get('username'));
+            hideAuthOverlay();
+            return true;
+        }
+    } catch (error) {
+        console.error('检查登录状态失败:', error);
+    }
+    
+    showAuthOverlay();
+    return false;
+}
+
+// 显示用户信息
+function showUserInfo(username) {
+    const userInfo = document.getElementById('user-info');
+    const usernameDisplay = document.getElementById('username-display');
+    usernameDisplay.textContent = `👤 ${username}`;
+    userInfo.style.display = 'flex';
+}
+
+// 隐藏用户信息
+function hideUserInfo() {
+    const userInfo = document.getElementById('user-info');
+    userInfo.style.display = 'none';
+}
+
+// 显示登录界面
+function showAuthOverlay() {
+    const authOverlay = document.getElementById('auth-overlay');
+    authOverlay.style.display = 'flex';
+}
+
+// 隐藏登录界面
+function hideAuthOverlay() {
+    const authOverlay = document.getElementById('auth-overlay');
+    authOverlay.style.display = 'none';
+}
+
+// 用户注册
+async function register(username, email, password) {
+    if (!AV) {
+        alert('云端服务未配置，请先配置 LeanCloud！');
+        return false;
+    }
+    
+    try {
+        const user = new AV.User();
+        user.setUsername(username);
+        user.setPassword(password);
+        user.setEmail(email);
+        
+        await user.signUp();
+        currentUser = user;
+        showUserInfo(username);
+        hideAuthOverlay();
+        showNotification('注册成功！欢迎使用心情日记！🎉');
+        
+        // 同步数据
+        await syncDataToCloud();
+        return true;
+    } catch (error) {
+        console.error('注册失败:', error);
+        alert(`注册失败：${error.message}`);
+        return false;
+    }
+}
+
+// 用户登录
+async function login(username, password) {
+    if (!AV) {
+        alert('云端服务未配置，请先配置 LeanCloud！');
+        return false;
+    }
+    
+    try {
+        const user = await AV.User.logIn(username, password);
+        currentUser = user;
+        showUserInfo(user.get('username'));
+        hideAuthOverlay();
+        showNotification('登录成功！正在同步数据...⏳');
+        
+        // 从云端加载数据
+        await loadDataFromCloud();
+        renderCalendar();
+        showNotification('数据同步完成！✅');
+        return true;
+    } catch (error) {
+        console.error('登录失败:', error);
+        alert(`登录失败：${error.message}`);
+        return false;
+    }
+}
+
+// 用户登出
+async function logout() {
+    if (!AV || !currentUser) return;
+    
+    try {
+        await AV.User.logOut();
+        currentUser = null;
+        hideUserInfo();
+        showAuthOverlay();
+        
+        // 清空本地数据
+        moodData = {};
+        renderCalendar();
+        showNotification('已安全登出！');
+    } catch (error) {
+        console.error('登出失败:', error);
+        alert(`登出失败：${error.message}`);
+    }
+}
+
+// 从云端加载数据
+async function loadDataFromCloud() {
+    if (!AV || !currentUser) return;
+    
+    try {
+        const query = new AV.Query('MoodRecord');
+        query.equalTo('user', currentUser);
+        query.limit(1000); // 最多加载1000条记录
+        
+        const records = await query.find();
+        moodData = {};
+        
+        records.forEach(record => {
+            const date = record.get('date');
+            moodData[date] = {
+                mood: record.get('mood'),
+                note: record.get('note') || '',
+                timestamp: record.get('timestamp')
+            };
+        });
+        
+        // 同时保存到本地作为缓存
+        localStorage.setItem('moodData', JSON.stringify(moodData));
+    } catch (error) {
+        console.error('从云端加载数据失败:', error);
+        // 如果加载失败，尝试从本地缓存加载
+        loadMoodDataLocal();
+    }
+}
+
+// 保存单条心情到云端
+async function saveMoodToCloud(date, moodInfo) {
+    if (!AV || !currentUser) {
+        // 未登录或未配置，仅保存到本地
+        saveMoodDataLocal();
+        return;
+    }
+    
+    try {
+        // 查询是否已存在该日期的记录
+        const query = new AV.Query('MoodRecord');
+        query.equalTo('user', currentUser);
+        query.equalTo('date', date);
+        
+        let record = await query.first();
+        
+        if (record) {
+            // 更新现有记录
+            record.set('mood', moodInfo.mood);
+            record.set('note', moodInfo.note);
+            record.set('timestamp', moodInfo.timestamp);
+        } else {
+            // 创建新记录
+            const MoodRecord = AV.Object.extend('MoodRecord');
+            record = new MoodRecord();
+            record.set('user', currentUser);
+            record.set('date', date);
+            record.set('mood', moodInfo.mood);
+            record.set('note', moodInfo.note);
+            record.set('timestamp', moodInfo.timestamp);
+        }
+        
+        await record.save();
+        
+        // 同时保存到本地缓存
+        saveMoodDataLocal();
+    } catch (error) {
+        console.error('保存到云端失败:', error);
+        // 保存失败时至少保存到本地
+        saveMoodDataLocal();
+        showNotification('云端同步失败，已保存到本地');
+    }
+}
+
+// 从云端删除心情记录
+async function deleteMoodFromCloud(date) {
+    if (!AV || !currentUser) {
+        // 未登录或未配置，仅从本地删除
+        saveMoodDataLocal();
+        return;
+    }
+    
+    try {
+        const query = new AV.Query('MoodRecord');
+        query.equalTo('user', currentUser);
+        query.equalTo('date', date);
+        
+        const record = await query.first();
+        if (record) {
+            await record.destroy();
+        }
+        
+        // 同时从本地删除
+        saveMoodDataLocal();
+    } catch (error) {
+        console.error('从云端删除失败:', error);
+        saveMoodDataLocal();
+    }
+}
+
+// 同步所有本地数据到云端
+async function syncDataToCloud() {
+    if (!AV || !currentUser) return;
+    
+    try {
+        for (const [date, moodInfo] of Object.entries(moodData)) {
+            await saveMoodToCloud(date, moodInfo);
+        }
+        showNotification('数据已全部同步到云端！☁️');
+    } catch (error) {
+        console.error('同步数据失败:', error);
+    }
+}
+
+// 本地存储功能（作为降级方案）
+function loadMoodDataLocal() {
+    const saved = localStorage.getItem('moodData');
+    if (saved) {
+        moodData = JSON.parse(saved);
+    }
+}
+
+function saveMoodDataLocal() {
+    localStorage.setItem('moodData', JSON.stringify(moodData));
+}
+
+// ==================== 原有代码修改 ====================
+
+// 心情数据
 const moodEmojis = {
     excited: '😄',
     happy: '😊',
@@ -35,10 +303,25 @@ let selectedMood = null;
 let selectedDate = null;
 let moodData = {};
 
-// ==================== 初始化 ====================
+// 初始化
 document.addEventListener('DOMContentLoaded', async () => {
-    // 检查登录状态并加载数据
-    await checkLoginStatus();
+    // 初始化 LeanCloud
+    const cloudEnabled = initLeanCloud();
+    
+    if (cloudEnabled) {
+        // 检查登录状态
+        const isLoggedIn = await checkLoginStatus();
+        if (isLoggedIn) {
+            // 已登录，从云端加载数据
+            await loadDataFromCloud();
+        } else {
+            // 未登录，从本地加载（如果有的话）
+            loadMoodDataLocal();
+        }
+    } else {
+        // 未配置云端服务，使用本地存储
+        loadMoodDataLocal();
+    }
     
     initializeDatePicker();
     loadBackground();
@@ -57,7 +340,10 @@ function initializeDatePicker() {
     selectedDate = today;
 }
 
-// ==================== 认证事件监听器 ====================
+// 加载心情数据
+// 移除旧的loadMoodData和saveMoodData函数，已在云端存储部分实现
+
+// 绑定认证事件监听器
 function attachAuthListeners() {
     // 切换到注册表单
     document.getElementById('show-register')?.addEventListener('click', (e) => {
@@ -139,7 +425,7 @@ function attachAuthListeners() {
     });
 }
 
-// ==================== 事件监听器 ====================
+// 绑定事件监听器
 function attachEventListeners() {
     // 日期选择
     document.getElementById('date-picker').addEventListener('change', (e) => {
@@ -569,3 +855,5 @@ function updateSelectedBackground() {
         });
     }
 }
+
+document.head.appendChild(style);
