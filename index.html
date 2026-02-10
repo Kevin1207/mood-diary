@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>心情日记 - 记录每一天的心情</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌈 心情日记</h1>
+            <p class="subtitle">记录每一天的心情，回顾美好时光</p>
+        </header>
+
+        <main>
+            <!-- 心情记录区 -->
+            <section class="mood-input-section">
+                <h2>今天的心情</h2>
+                <div class="input-group">
+                    <label for="date-picker">选择日期：</label>
+                    <input type="date" id="date-picker" max="">
+                </div>
+                
+                <div class="mood-selector">
+                    <h3>你今天的心情是？</h3>
+                    <div class="mood-options">
+                        <button class="mood-btn" data-mood="excited" title="非常开心">
+                            <span class="emoji">😄</span>
+                            <span class="label">非常开心</span>
+                        </button>
+                        <button class="mood-btn" data-mood="happy" title="开心">
+                            <span class="emoji">😊</span>
+                            <span class="label">开心</span>
+                        </button>
+                        <button class="mood-btn" data-mood="calm" title="平静">
+                            <span class="emoji">😌</span>
+                            <span class="label">平静</span>
+                        </button>
+                        <button class="mood-btn" data-mood="tired" title="疲惫">
+                            <span class="emoji">😫</span>
+                            <span class="label">疲惫</span>
+                        </button>
+                        <button class="mood-btn" data-mood="sad" title="难过">
+                            <span class="emoji">😢</span>
+                            <span class="label">难过</span>
+                        </button>
+                        <button class="mood-btn" data-mood="angry" title="生气">
+                            <span class="emoji">😠</span>
+                            <span class="label">生气</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="note-group">
+                    <label for="mood-note">心情记录（可选）：</label>
+                    <textarea id="mood-note" placeholder="今天发生了什么？写下你的想法..." rows="4"></textarea>
+                </div>
+
+                <button id="save-btn" class="save-btn">💾 保存心情</button>
+            </section>
+
+            <!-- 月历视图区 -->
+            <section class="calendar-section">
+                <div class="calendar-header">
+                    <button id="prev-month" class="nav-btn">◀</button>
+                    <h2 id="current-month"></h2>
+                    <button id="next-month" class="nav-btn">▶</button>
+                </div>
+                <div id="calendar" class="calendar"></div>
+            </section>
+
+            <!-- 心情详情弹窗 -->
+            <div id="mood-modal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h3 id="modal-date"></h3>
+                    <div id="modal-mood" class="modal-mood"></div>
+                    <p id="modal-note" class="modal-note"></p>
+                    <button id="delete-btn" class="delete-btn">🗑️ 删除记录</button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>用心记录，用爱生活 ❤️</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
