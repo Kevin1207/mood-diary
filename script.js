@@ -27,8 +27,10 @@ let moodData = {};
 document.addEventListener('DOMContentLoaded', () => {
     initializeDatePicker();
     loadMoodData();
+    loadBackground();
     renderCalendar();
     attachEventListeners();
+    attachBackgroundListeners();
 });
 
 // 初始化日期选择器
@@ -313,4 +315,165 @@ style.textContent = `
         }
     }
 `;
+document.head.appendChild(style);
+
+// ==================== 背景设置功能 ====================
+
+// 加载保存的背景
+function loadBackground() {
+    const savedBg = localStorage.getItem('backgroundSettings');
+    if (savedBg) {
+        const bgSettings = JSON.parse(savedBg);
+        applyBackground(bgSettings.type, bgSettings.value);
+    }
+}
+
+// 应用背景
+function applyBackground(type, value) {
+    const html = document.documentElement;
+    const body = document.body;
+    
+    // 清除之前的背景
+    html.style.background = '';
+    html.style.backgroundColor = '';
+    body.style.background = '';
+    body.style.backgroundColor = '';
+    
+    if (type === 'gradient' || type === 'color') {
+        html.style.background = value;
+        html.style.backgroundAttachment = 'fixed';
+        body.style.background = 'transparent';
+    } else if (type === 'image') {
+        html.style.backgroundImage = `url(${value})`;
+        html.style.backgroundSize = 'cover';
+        html.style.backgroundPosition = 'center';
+        html.style.backgroundAttachment = 'fixed';
+        body.style.background = 'transparent';
+    }
+}
+
+// 保存背景设置
+function saveBackground(type, value) {
+    const bgSettings = { type, value };
+    localStorage.setItem('backgroundSettings', JSON.stringify(bgSettings));
+}
+
+// 绑定背景设置事件
+function attachBackgroundListeners() {
+    const bgSettingsBtn = document.getElementById('bg-settings-btn');
+    const bgModal = document.getElementById('bg-modal');
+    const bgClose = document.querySelector('.bg-close');
+    const bgOptions = document.querySelectorAll('.bg-option');
+    const uploadBtn = document.getElementById('upload-btn');
+    const bgUpload = document.getElementById('bg-upload');
+    const removeBgBtn = document.getElementById('remove-bg-btn');
+    const previewContainer = document.getElementById('preview-container');
+    const bgPreview = document.getElementById('bg-preview');
+
+    // 打开背景设置
+    bgSettingsBtn.addEventListener('click', () => {
+        bgModal.style.display = 'block';
+        updateSelectedBackground();
+    });
+
+    // 关闭背景设置
+    bgClose.addEventListener('click', () => {
+        bgModal.style.display = 'none';
+    });
+
+    bgModal.addEventListener('click', (e) => {
+        if (e.target === bgModal) {
+            bgModal.style.display = 'none';
+        }
+    });
+
+    // 选择预设背景
+    bgOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            const type = option.dataset.type;
+            const value = option.dataset.value;
+            
+            applyBackground(type, value);
+            saveBackground(type, value);
+            updateSelectedBackground();
+            showNotification('背景已更换！🎨');
+        });
+    });
+
+    // 上传图片按钮
+    uploadBtn.addEventListener('click', () => {
+        bgUpload.click();
+    });
+
+    // 处理图片上传
+    bgUpload.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (!file.type.startsWith('image/')) {
+                alert('请选择图片文件！');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const imageData = event.target.result;
+                
+                // 显示预览
+                bgPreview.src = imageData;
+                previewContainer.style.display = 'block';
+                
+                // 应用背景
+                applyBackground('image', imageData);
+                saveBackground('image', imageData);
+                showNotification('背景图片已上传！📸');
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // 移除自定义背景
+    removeBgBtn.addEventListener('click', () => {
+        // 恢复默认背景
+        const defaultBg = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        applyBackground('gradient', defaultBg);
+        saveBackground('gradient', defaultBg);
+        
+        // 隐藏预览
+        previewContainer.style.display = 'none';
+        bgPreview.src = '';
+        bgUpload.value = '';
+        
+        updateSelectedBackground();
+        showNotification('已恢复默认背景！');
+    });
+
+    // 加载已上传的图片预览
+    const savedBg = localStorage.getItem('backgroundSettings');
+    if (savedBg) {
+        const bgSettings = JSON.parse(savedBg);
+        if (bgSettings.type === 'image') {
+            bgPreview.src = bgSettings.value;
+            previewContainer.style.display = 'block';
+        }
+    }
+}
+
+// 更新选中状态
+function updateSelectedBackground() {
+    const savedBg = localStorage.getItem('backgroundSettings');
+    const bgOptions = document.querySelectorAll('.bg-option');
+    
+    bgOptions.forEach(option => option.classList.remove('selected'));
+    
+    if (savedBg) {
+        const bgSettings = JSON.parse(savedBg);
+        bgOptions.forEach(option => {
+            if (option.dataset.type === bgSettings.type && 
+                option.dataset.value === bgSettings.value) {
+                option.classList.add('selected');
+            }
+        });
+    }
+}
+
 document.head.appendChild(style);

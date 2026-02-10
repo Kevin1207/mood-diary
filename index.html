@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- 背景设置按钮 -->
+    <button id="bg-settings-btn" class="bg-settings-btn" title="背景设置">🎨</button>
+
     <div class="container">
         <header>
             <h1>🌈 心情日记</h1>
@@ -78,6 +81,75 @@
                     <div id="modal-mood" class="modal-mood"></div>
                     <p id="modal-note" class="modal-note"></p>
                     <button id="delete-btn" class="delete-btn">🗑️ 删除记录</button>
+                </div>
+            </div>
+
+            <!-- 背景设置弹窗 -->
+            <div id="bg-modal" class="modal">
+                <div class="modal-content bg-modal-content">
+                    <span class="close bg-close">&times;</span>
+                    <h3>🎨 背景设置</h3>
+                    
+                    <div class="bg-section">
+                        <h4>预设渐变背景</h4>
+                        <div class="bg-options">
+                            <div class="bg-option" data-type="gradient" data-value="linear-gradient(135deg, #667eea 0%, #764ba2 100%)" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
+                                <span class="bg-label">紫色梦幻</span>
+                            </div>
+                            <div class="bg-option" data-type="gradient" data-value="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%)">
+                                <span class="bg-label">粉红浪漫</span>
+                            </div>
+                            <div class="bg-option" data-type="gradient" data-value="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)">
+                                <span class="bg-label">蓝色海洋</span>
+                            </div>
+                            <div class="bg-option" data-type="gradient" data-value="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)">
+                                <span class="bg-label">翠绿清新</span>
+                            </div>
+                            <div class="bg-option" data-type="gradient" data-value="linear-gradient(135deg, #fa709a 0%, #fee140 100%)" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%)">
+                                <span class="bg-label">日落余晖</span>
+                            </div>
+                            <div class="bg-option" data-type="gradient" data-value="linear-gradient(135deg, #30cfd0 0%, #330867 100%)" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%)">
+                                <span class="bg-label">深海神秘</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-section">
+                        <h4>纯色背景</h4>
+                        <div class="bg-options">
+                            <div class="bg-option" data-type="color" data-value="#f8f9fa" style="background: #f8f9fa">
+                                <span class="bg-label">浅灰</span>
+                            </div>
+                            <div class="bg-option" data-type="color" data-value="#ffe5e5" style="background: #ffe5e5">
+                                <span class="bg-label">粉红</span>
+                            </div>
+                            <div class="bg-option" data-type="color" data-value="#e3f2fd" style="background: #e3f2fd">
+                                <span class="bg-label">淡蓝</span>
+                            </div>
+                            <div class="bg-option" data-type="color" data-value="#e8f5e9" style="background: #e8f5e9">
+                                <span class="bg-label">浅绿</span>
+                            </div>
+                            <div class="bg-option" data-type="color" data-value="#fff9e6" style="background: #fff9e6">
+                                <span class="bg-label">米黄</span>
+                            </div>
+                            <div class="bg-option" data-type="color" data-value="#f3e5f5" style="background: #f3e5f5">
+                                <span class="bg-label">淡紫</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-section">
+                        <h4>上传图片</h4>
+                        <div class="upload-section">
+                            <input type="file" id="bg-upload" accept="image/*" style="display: none;">
+                            <button id="upload-btn" class="upload-btn">📁 选择图片</button>
+                            <p class="upload-hint">支持 JPG、PNG 格式，建议尺寸 1920x1080</p>
+                            <div id="preview-container" class="preview-container" style="display: none;">
+                                <img id="bg-preview" class="bg-preview" alt="预览">
+                                <button id="remove-bg-btn" class="remove-bg-btn">🗑️ 移除图片</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
