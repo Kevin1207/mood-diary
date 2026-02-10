@@ -325,6 +325,10 @@ function loadBackground() {
     if (savedBg) {
         const bgSettings = JSON.parse(savedBg);
         applyBackground(bgSettings.type, bgSettings.value);
+    } else {
+        // 如果没有保存的背景，应用默认背景
+        const defaultBg = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        applyBackground('gradient', defaultBg);
     }
 }
 
@@ -333,22 +337,27 @@ function applyBackground(type, value) {
     const html = document.documentElement;
     const body = document.body;
     
-    // 清除之前的背景
-    html.style.background = '';
-    html.style.backgroundColor = '';
-    body.style.background = '';
-    body.style.backgroundColor = '';
+    // 移除所有背景相关的内联样式
+    html.style.removeProperty('background');
+    html.style.removeProperty('background-color');
+    html.style.removeProperty('background-image');
+    html.style.removeProperty('background-size');
+    html.style.removeProperty('background-position');
+    html.style.removeProperty('background-attachment');
+    body.style.removeProperty('background');
+    body.style.removeProperty('background-color');
     
+    // 使用 setProperty 设置样式，确保优先级
     if (type === 'gradient' || type === 'color') {
-        html.style.background = value;
-        html.style.backgroundAttachment = 'fixed';
-        body.style.background = 'transparent';
+        html.style.setProperty('background', value, 'important');
+        html.style.setProperty('background-attachment', 'fixed', 'important');
+        body.style.setProperty('background', 'transparent', 'important');
     } else if (type === 'image') {
-        html.style.backgroundImage = `url(${value})`;
-        html.style.backgroundSize = 'cover';
-        html.style.backgroundPosition = 'center';
-        html.style.backgroundAttachment = 'fixed';
-        body.style.background = 'transparent';
+        html.style.setProperty('background-image', `url(${value})`, 'important');
+        html.style.setProperty('background-size', 'cover', 'important');
+        html.style.setProperty('background-position', 'center', 'important');
+        html.style.setProperty('background-attachment', 'fixed', 'important');
+        body.style.setProperty('background', 'transparent', 'important');
     }
 }
 

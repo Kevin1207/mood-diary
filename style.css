@@ -7,7 +7,7 @@
 :root {
     --primary-color: #6366f1;
     --secondary-color: #8b5cf6;
-    --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --default-background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     --card-bg: #ffffff;
     --text-primary: #1f2937;
     --text-secondary: #6b7280;
@@ -16,21 +16,16 @@
     --shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.15);
 }
 
+html {
+    min-height: 100vh;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: var(--background) !important;
     min-height: 100vh;
     padding: 20px;
-    color: var(--text-primary) !important;
-}
-
-/* 强制覆盖外部主题 */
-html, body {
-    background-color: transparent !important;
-}
-
-html {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: var(--text-primary);
+    background: transparent;
 }
 
 .container {
