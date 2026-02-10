@@ -1,0 +1,11 @@
+.git
+.kwaipilot
+node_modules
+.DS_Store
+README.md
+DEPLOYMENT.md
+VERCEL_GITHUB_DEPLOY.md
+国内部署方案.md
+vercel.json
+wrangler.jsonc
+.gitignore
