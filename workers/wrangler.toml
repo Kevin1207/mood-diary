@@ -6,13 +6,7 @@
     {
       "binding": "DB",
       "database_name": "mood-diary-db",
-      "database_id": "YOUR_DATABASE_ID_HERE"
-    }
-  ],
-  "routes": [
-    {
-      "pattern": "*/api/*",
-      "zone_name": "YOUR_DOMAIN_HERE"
+      "database_id": "eb51fc89-c25d-4887-8cb3-e349c22bc18a"
     }
   ]
 }

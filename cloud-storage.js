@@ -1,7 +1,7 @@
 // ==================== Cloudflare D1 云端存储功能 ====================
 
 // API 配置
-const API_BASE_URL = 'https://YOUR_WORKER_URL_HERE/api';
+const API_BASE_URL = 'https://mood-diary-api.zhaolong57.workers.dev/api';
 let currentUser = null;
 let authToken = null;
 
